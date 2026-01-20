@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Venüs’ten Okur | Linkler</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* --- PAMUK ŞEKER RENK PALETİ VE AYARLAR --- */
+        :root {
+            --bg-gradient: linear-gradient(135deg, #fdf2f8 0%, #f5d0fe 50%, #fae8ff 100%); /* Pembe-Lila Geçiş */
+            --card-bg: rgba(255, 255, 255, 0.85); /* Beyaz şeffaf */
+            --text-primary: #701a75; /* Koyu mor/pembe yazı */
+            --text-secondary: #a21caf; /* İkonlar ve ikincil yazılar için mor */
+            --accent-pink: #fbcfe8;
+            --accent-lila: #d8b4fe;
+            --btn-hover: #fce7f3;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Georgia', 'Times New Roman', serif; /* Kitap konsepti için serif font */
+            background: var(--bg-gradient);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden; /* Animasyon sırasında kaydırmayı engelle */
+        }
+
+        /* --- 1. GİRİŞ ANİMASYONU (KİTAP) --- */
+        #intro-loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-gradient);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.8s ease-out;
+        }
+
+        .book {
+            /* KİTAP BOYUTU BÜYÜTÜLDÜ */
+            width: 210px;
+            height: 290px;
+            position: relative;
+            perspective: 1000px;
+            transform-style: preserve-3d;
+        }
+
+        .book-cover {
+            width: 100%;
+            height: 100%;
+            background-color: #f0abfc; /* Lila kapak */
+            border-radius: 5px 15px 15px 5px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            transform-origin: left;
+            z-index: 2;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            box-shadow: 5px 5px 15px rgba(0,0,0,0.1);
+            transition: transform 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .book-cover::after {
+            content: ''; /* Cilt detayı */
+            position: absolute;
+            left: 10px;
+            top: 0;
+            bottom: 0;
+            width: 5px;
+            background: rgba(255,255,255,0.3);
+        }
+
+        .book-title {
+            color: white;
+            font-size: 1.5rem; /* Yazı da biraz büyüdü */
+            font-weight: bold;
+            padding: 10px;
+            font-family: 'Segoe UI', sans-serif;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .book-pages {
+            width: 95%;
+            height: 95%;
+            background: #fff;
+            position: absolute;
+            top: 2.5%;
+            left: 2%;
+            border-radius: 3px 12px 12px 3px;
+            z-index: 1;
+            box-shadow: inset -5px 0 10px rgba(0,0,0,0.05);
+            background-image: linear-gradient(to right, rgba(0,0,0,0.05) 1px, transparent 1px);
+            background-size: 5px 100%;
+        }
+
+        /* Kitap Açılma Sınıfı */
+        .book.open .book-cover {
+            transform: rotateY(-140deg);
+        }
+
+        /* --- 2. ANA İÇERİK --- */
+        #main-content {
+            opacity: 0; /* Başlangıçta gizli */
+            transform: scale(0.95);
+            transition: opacity 1s ease, transform 1s ease;
+            width: 100%;
+            max-width: 420px;
+            /* Boşluklar azaltıldı */
+            padding: 15px;
+            box-sizing: border-box;
+            text-align: center;
+        }
+
+        /* Profil Resmi */
+        .profile-wrapper {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 10px; /* Boşluk azaltıldı */
+        }
+        
+        .profile-img {
+            width: 130px;
+            height: 130px;
+            border-radius: 50%;
+            border: 4px solid white;
+            box-shadow: 0 8px 20px rgba(240, 171, 252, 0.4);
+            object-fit: cover;
+        }
+
+        .book-icon-decoration {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            background: white;
+            color: var(--text-secondary);
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1rem;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        h1 { margin: 5px 0; font-size: 1.6rem; letter-spacing: 0.5px; }
+        p.handle { color: var(--text-secondary); margin-top: 0; font-size: 0.95rem; font-style: italic; }
+
+        /* Link Kartları */
+        .links-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px; /* Kutular arası boşluk azaltıldı */
+            margin-top: 20px; /* Üst boşluk azaltıldı */
+        }
+
+        .link-card {
+            background: white;
+            /* Kart içi boşluklar (padding) azaltıldı, daha kompakt oldu */
+            padding: 15px 25px; 
+            border-radius: 50px; /* Hap şeklinde */
+            text-decoration: none;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(216, 180, 254, 0.2);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            opacity: 0; /* Animasyon için gizli başlar */
+            transform: translateY(30px);
+            border: 1px solid white;
+        }
+
+        .link-card:hover {
+            transform: scale(1.03) translateY(-3px);
+            box-shadow: 0 8px 25px rgba(216, 180, 254, 0.4);
+            background: var(--btn-hover);
+        }
+
+        /* İKON RENKLERİ SADELEŞTİRİLDİ */
+        .link-card i {
+            font-size: 1.4rem;
+            width: 35px;
+            text-align: center;
+            margin-right: 15px;
+            /* Hepsi tek renk mor/pembe yapıldı */
+            color: var(--text-secondary); 
+        }
+
+        .link-text span { font-weight: bold; display: block; font-size: 1rem; }
+        .link-text small { font-size: 0.75rem; opacity: 0.7; font-family: 'Segoe UI', sans-serif; }
+
+        /* Animasyon Gecikmeleri (Sırayla gelmesi için) */
+        .slide-up { animation: slideUpFade 0.6s forwards; }
+
+        @keyframes slideUpFade {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .delay-1 { animation-delay: 0.1s; }
+        .delay-2 { animation-delay: 0.2s; }
+        .delay-3 { animation-delay: 0.3s; }
+        .delay-4 { animation-delay: 0.4s; }
+        .delay-5 { animation-delay: 0.5s; }
+
+        footer {
+            margin-top: 30px; /* Footer boşluğu azaltıldı */
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            font-weight: bold;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="intro-loader">
+        <div class="book" id="book-anim">
+            <div class="book-pages"></div>
+            <div class="book-cover">
+                <div class="book-title">Venüs’ten<br>Okur</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="main-content">
+        
+        <div class="profile-wrapper">
+            <img src="https://iili.io/frnYibf.jpg" alt="Venüs'ten Okur" class="profile-img">
+            <div class="book-icon-decoration"><i class="fa-solid fa-heart"></i></div>
+        </div>
+
+        <h1>Venüs’ten Okur</h1>
+        <p class="handle">@venustenokur</p>
+
+        <div class="links-container" id="links-list">
+            
+            <a href="https://youtube.com/@venustenokur" target="_blank" class="link-card delay-1">
+                <i class="fa-brands fa-youtube"></i>
+                <div class="link-text">
+                    <span>YouTube</span>
+                    <small>youtube.com/@venustenokur</small>
+                </div>
+            </a>
+
+            <a href="https://tiktok.com/@venustenokur" target="_blank" class="link-card delay-2">
+                <i class="fa-brands fa-tiktok"></i>
+                <div class="link-text">
+                    <span>TikTok</span>
+                    <small>tiktok.com/@venustenokur</small>
+                </div>
+            </a>
+
+            <a href="https://1000kitap.com/venustenokur" target="_blank" class="link-card delay-3">
+                <i class="fa-solid fa-book-open"></i>
+                <div class="link-text">
+                    <span>1000Kitap</span>
+                    <small>1000kitap.com/venustenokur</small>
+                </div>
+            </a>
+
+            <a href="https://wattpad.com/user/venustenokurr" target="_blank" class="link-card delay-4">
+                <i class="fa-solid fa-pen-nib"></i>
+                <div class="link-text">
+                    <span>Wattpad</span>
+                    <small>wattpad.com/user/venustenokurr</small>
+                </div>
+            </a>
+            
+            <a href="https://instagram.com/venustenokur" target="_blank" class="link-card delay-5">
+                <i class="fa-brands fa-instagram"></i>
+                <div class="link-text">
+                    <span>Instagram</span>
+                    <small>@venustenokur</small>
+                </div>
+            </a>
+
+        </div>
+
+        <footer>
+            Venüs’ten Okur
+        </footer>
+    </div>
+
+    <script>
+        // Sayfa Yüklendiğinde Çalışacak Senaryo (Burası aynı kaldı)
+        window.addEventListener('load', () => {
+            const book = document.getElementById('book-anim');
+            const loader = document.getElementById('intro-loader');
+            const mainContent = document.getElementById('main-content');
+            const links = document.querySelectorAll('.link-card');
+
+            // 1. Adım: Biraz bekle sonra kitabı aç
+            setTimeout(() => {
+                book.classList.add('open');
+            }, 500);
+
+            // 2. Adım: Kitap açıldıktan sonra loader'ı gizle, içeriği getir
+            setTimeout(() => {
+                loader.style.opacity = '0';
+                
+                // Loader tamamen kaybolunca arkadaki tıklamaları engellememesi için
+                setTimeout(() => {
+                    loader.style.display = 'none';
+                    // Ana içeriği göster
+                    mainContent.style.opacity = '1';
+                    mainContent.style.transform = 'scale(1)';
+                    document.body.style.overflow = 'auto'; // Kaydırmayı geri aç
+
+                    // 3. Adım: Linkleri sırayla animasyonla getir
+                    links.forEach(link => {
+                        link.classList.add('slide-up');
+                    });
+
+                }, 800); // Opacity transition süresiyle uyumlu (0.8s)
+
+            }, 1800); // Kitabın açılma süresi + bekleme süresi
+        });
+    </script>
+</body>
+</html>
